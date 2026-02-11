@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Stack, TextField, Typography, Card, CardContent} from "@mui/material";
 import ImageUploadPreview from "../components/ImageUploadPreview";
 import MapPicker from "../components/MapPicker";
 import { useNavigate, useLocation } from "react-router-dom";
-import { addCustomer, updateCustomer } from "../api";
+import { addCustomer, updateCustomer, API_BASE_URL } from "../api";
 import axios from "axios";
+import { Container } from "@mui/material";
 
 export default function CustomerForm() {
   const navigate = useNavigate();
@@ -66,7 +67,9 @@ export default function CustomerForm() {
       if (!addr) return;
       try {
         const res = await axios.get(
-          `http://localhost:5000/customers/geocode-address?address=${encodeURIComponent(addr)}`
+          `${API_BASE_URL}/customers/geocode-address?address=${encodeURIComponent(
+            addr
+          )}`
         );
         if (res.data && res.data.lat && res.data.lon) {
           setFormData((prev) => ({
@@ -85,7 +88,7 @@ export default function CustomerForm() {
     if (!formData.latitude || !formData.longitude) return;
     try {
       const res = await axios.get(
-        `http://localhost:5000/customers/reverse-geocode?lat=${formData.latitude}&lon=${formData.longitude}`
+        `${API_BASE_URL}/customers/reverse-geocode?lat=${formData.latitude}&lon=${formData.longitude}`
       );
       if (res.data && res.data.address_text) {
         setFormData((prev) => ({ ...prev, address_text: res.data.address_text }));
@@ -132,39 +135,49 @@ export default function CustomerForm() {
   };
 
   return (
-    
-    <form onSubmit={handleSubmit}>
-      <Box sx={{ width: "80%", margin: "40px auto" }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          {mode === "edit" ? "Edit Customer" : "Add New Customer"}
-        </Typography>
 
-        <Stack spacing={2}>
-          <ImageUploadPreview value={formData.image} onChange={handleImageChange} />
-          <TextField label="Name" name="name" fullWidth value={formData.name} onChange={handleChange} />
-          <TextField label="Email" name="email" fullWidth value={formData.email} onChange={handleChange} />
-          <TextField label="Mobile No" name="mobileno" fullWidth value={formData.mobileno} onChange={handleChange} />
-          <TextField label="Address" name="address_text" fullWidth value={formData.address_text} onChange={handleChange} onKeyDown={handleAddressKeyDown} />          
-          <Stack direction="row" spacing={2} >
-          <TextField label="Latitude" name="latitude" fullWidth value={formData.latitude} onChange={handleChange} />
-          <TextField label="Longitude" name="longitude" fullWidth value={formData.longitude} onChange={handleChange} />
-          <Button variant="outlined" onClick={handleGetAddress}>
-              Get Address
-          </Button>
-          </Stack>
-          <Box sx={{ width: "100%", height: 300 }}>
-          <MapPicker lat={formData.latitude} lon={formData.longitude} onLocationSelect={handleLocationSelect} />          
-          </Box>
-        </Stack>
-        <Stack direction="row" spacing={2}>
-            <Button variant="contained" onClick={handleSubmit}>
-              Save
-            </Button>
-            <Button variant="outlined" onClick={() => navigate(-1)}>
-              Cancel
-            </Button>
-          </Stack>
-      </Box>      
-    </form>
+    <form onSubmit={handleSubmit}>
+      <Box sx={{ width: "100%", maxWidth: "800px", margin: "40px auto" }}>
+        <Card sx={{
+          backdropFilter: "blur(10px)",
+          backgroundColor: "rgba(255, 255, 255, 0.85)",
+          borderRadius: 4,
+          boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+        }}>
+          <CardContent sx={{ p: 4 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>
+              {mode === "edit" ? "Edit Customer" : "Add New Customer"}
+            </Typography>
+
+            <Stack spacing={2}>
+              <ImageUploadPreview value={formData.image} onChange={handleImageChange} />
+              <TextField label="Name" name="name" fullWidth value={formData.name} onChange={handleChange} />
+              <TextField label="Email" name="email" fullWidth value={formData.email} onChange={handleChange} />
+              <TextField label="Mobile No" name="mobileno" fullWidth value={formData.mobileno} onChange={handleChange} />
+              <TextField label="Address" name="address_text" fullWidth value={formData.address_text} onChange={handleChange} onKeyDown={handleAddressKeyDown} />
+              <Stack direction="row" spacing={2} >
+                <TextField label="Latitude" name="latitude" fullWidth value={formData.latitude} onChange={handleChange} />
+                <TextField label="Longitude" name="longitude" fullWidth value={formData.longitude} onChange={handleChange} />
+                <Button variant="outlined" onClick={handleGetAddress}>
+                  Get Address
+                </Button>
+              </Stack>
+              <Box sx={{ width: "100%", height: 300 }}>
+                <MapPicker lat={formData.latitude} lon={formData.longitude} onLocationSelect={handleLocationSelect} />
+              </Box>
+            </Stack>
+            <Stack direction="row" spacing={2}>
+              <Button variant="contained" onClick={handleSubmit}>
+                Save
+              </Button>
+              <Button variant="outlined" onClick={() => navigate(-1)}>
+                Cancel
+              </Button>
+            </Stack>
+
+          </CardContent>
+        </Card>
+      </Box>
+    </form >
   );
 }

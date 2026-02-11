@@ -1,12 +1,25 @@
 import axios from "axios";
 
+// Centralise API base URL so it can be configured per environment.
+// In Vite, environment variables must start with VITE_.
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const API = axios.create({
-  baseURL: "http://localhost:5000", // your Python service URL
+  baseURL: API_BASE_URL,
 });
 
 // Login
 export const loginUser = (credentials) =>
   API.post("/login", credentials);
+
+// Register
+export const registerUser = (data) =>
+  API.post("/register", data);
+
+// Forgot Password
+export const forgotPassword = (email) =>
+  API.post("/forgot-password", { email });
 
 // Get Customers
 export const getCustomers = () =>

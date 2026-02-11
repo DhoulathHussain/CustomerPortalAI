@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Box, Typography, Button, Stack, TextField, Alert, Snackbar, Tooltip } from "@mui/material";
+import { Box, Typography, Button, Stack, TextField, Alert, Snackbar, Tooltip, Card, CardContent, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { getCustomers, deleteCustomer, searchCustomers } from "../api";
 
@@ -46,7 +46,7 @@ export default function Customers({ setIsLoggedIn }) {  // <-- receive from App
 
   const handleAdd = () => {
     navigate("/customer-form", { state: { mode: "add" } });
- };
+  };
 
   const handleEdit = () => {
     if (!selected) {
@@ -54,16 +54,28 @@ export default function Customers({ setIsLoggedIn }) {  // <-- receive from App
       return;
     }
     navigate("/customer-form", { state: { mode: "edit", customer: selected } });
- };
+  };
 
-  const handleDelete = async () => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const handleDelete = () => {
     if (!selected) {
-      alert("Please select a customer to delete");
+      setSnackbar({ open: true, message: "Please select a customer to delete", severity: "warning" });
       return;
     }
-    await deleteCustomer(selected.id);
-    alert("Customer deleted successfully");
-    fetchCustomers();
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    setDeleteDialogOpen(false);
+    try {
+      await deleteCustomer(selected.id);
+      setSnackbar({ open: true, message: "Customer deleted successfully", severity: "success" });
+      fetchCustomers();
+      setSelected(null);
+    } catch (error) {
+      setSnackbar({ open: true, message: "Failed to delete customer", severity: "error" });
+    }
   };
 
   const handleLogout = () => {                 // <-- NEW
@@ -129,47 +141,164 @@ export default function Customers({ setIsLoggedIn }) {  // <-- receive from App
   ];
 
   return (
-    <Box sx={{ width: "80%", margin: "40px auto" }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Customer Management</Typography>
-        <Button variant="outlined" color="secondary" onClick={handleLogout}>
-          Logout
-        </Button>
-      </Box>
+    <Box sx={{ width: "90%", maxWidth: "1200px", margin: "40px auto" }}>
+      <Card sx={{
+        backdropFilter: "blur(10px)",
+        backgroundColor: "rgba(255, 255, 255, 0.85)",
+        borderRadius: 4,
+        boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+      }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Typography variant="h4" fontWeight="bold" sx={{
+              background: "linear-gradient(45deg, #1e3c72 30%, #2a5298 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              textFillColor: "transparent"
+            }}>
+              Customer Management
+            </Typography>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleLogout}
+              sx={{
+                background: "linear-gradient(45deg, #FF512F 30%, #DD2476 90%)",
+                boxShadow: "0 3px 5px 2px rgba(255, 105, 135, .3)",
+                color: "white",
+                borderRadius: "20px",
+                fontWeight: "bold",
+                textTransform: "none",
+                padding: "5px 20px",
+                "&:hover": {
+                  background: "linear-gradient(45deg, #E64A19 30%, #C2185B 90%)",
+                }
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-        <Button variant="contained" onClick={handleAdd}>Add Customer</Button>
-        <Button variant="outlined" onClick={handleEdit}>Update Customer</Button>
-        <Button variant="outlined" color="error" onClick={handleDelete}>Delete Customer</Button>
-        <TextField
-          label="Search by Name, Email or Mobile No"
-          variant="outlined"
-          size="small"
-          value={search}
-          onChange={handleSearch}
-          sx={{ flex: 1 }}
-        />
-      </Stack>
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <Button
+              variant="contained"
+              onClick={handleAdd}
+              sx={{
+                background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+                boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+                color: "white",
+                fontWeight: "bold",
+                borderRadius: "20px",
+                padding: "0 30px",
+                textTransform: "none",
+                transition: "transform 0.2s",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                  background: "linear-gradient(45deg, #1976D2 30%, #00BCD4 90%)",
+                }
+              }}
+            >
+              Add Customer
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleEdit}
+              sx={{
+                borderRadius: "20px",
+                borderColor: "#2196F3",
+                color: "#2196F3",
+                fontWeight: "bold",
+                textTransform: "none",
+                padding: "0 25px",
+                "&:hover": {
+                  borderColor: "#1976D2",
+                  backgroundColor: "rgba(33, 150, 243, 0.1)",
+                }
+              }}
+            >
+              Update Customer
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleDelete}
+              sx={{
+                borderRadius: "20px",
+                fontWeight: "bold",
+                textTransform: "none",
+                padding: "0 25px",
+                borderWidth: "1.5px",
+                "&:hover": {
+                  borderWidth: "1.5px",
+                  backgroundColor: "rgba(211, 47, 47, 0.1)",
+                }
+              }}
+            >
+              Delete Customer
+            </Button>
+            <TextField
+              label="Search by Name, Email or Mobile No"
+              variant="outlined"
+              size="small"
+              value={search}
+              onChange={handleSearch}
+              sx={{
+                flex: 1,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "20px",
+                  backgroundColor: "rgba(255,255,255,0.5)",
+                }
+              }}
+            />
+          </Stack>
 
-      <DataGrid
-        rows={customers}                    // <-- use server results directly
-        columns={columns}
-        pageSizeOptions={[5, 10, 15, 20, 25]}
-        onRowClick={(params) => setSelected(params.row)}
-        getRowId={(row) => row.id}
-        initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
-      />
+          <DataGrid
+            rows={customers}                    // <-- use server results directly
+            columns={columns}
+            pageSizeOptions={[5, 10, 15, 20, 25]}
+            onRowClick={(params) => setSelected(params.row)}
+            getRowId={(row) => row.id}
+            initialState={{ pagination: { paginationModel: { pageSize: 5 } } }}
+          />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={4000}
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Confirm Deletion"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Are you sure you want to delete {selected?.name}? This action cannot be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={confirmDelete} color="error" variant="contained" autoFocus>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+        </CardContent>
+      </Card>
+    </Box >
   );
 }
